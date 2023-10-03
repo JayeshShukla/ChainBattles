@@ -6,20 +6,45 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
-// deployed to polygon mumbai testnet address : 0x62BBC3D3C61e77D4EDc88E3cE481aD54e56845d3
+// deployed to polygon mumbai testnet address : 0x2d87fDf73300fE5115Fb6ef9A1Fe43250D7d3Cd4
 
 contract ChainBattles is ERC721URIStorage {
     using Strings for uint256;
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    mapping(uint256 => uint256) public tokenIdToLevels;
+    struct attributes {
+        uint256 levels;
+        uint256 hitpoints;
+        uint256 strength;
+        string warriortype;
+    }
+
+    mapping(uint256 => attributes) public tokenIdToLevels;
 
     constructor() ERC721("Chain Battles", "CBTLS") {}
 
-    function getLevels(uint256 tokenId) public view returns (string memory) {
-        uint256 levels = tokenIdToLevels[tokenId];
-        return levels.toString();
+    function getAttributes(
+        uint256 tokenId
+    ) public view returns (string memory) {
+        attributes memory updatedAttributes = tokenIdToLevels[tokenId];
+
+        // Create a JSON string manually
+        string memory attributesJson = string(
+            abi.encodePacked(
+                '{"levels": ',
+                (updatedAttributes.levels).toString(),
+                ', "hitpoints": ',
+                (updatedAttributes.hitpoints).toString(),
+                ', "strength": ',
+                (updatedAttributes.strength).toString(),
+                ', "warriortype": "',
+                updatedAttributes.warriortype,
+                '"}'
+            )
+        );
+
+        return attributesJson;
     }
 
     function generateCharacter(
@@ -34,7 +59,7 @@ contract ChainBattles is ERC721URIStorage {
             "</text>",
             '<text x="50%" y="50%" class="base" dominant-baseline="middle" text-anchor="middle">',
             "Levels: ",
-            getLevels(tokenId),
+            getAttributes(tokenId),
             "</text>",
             "</svg>"
         );
@@ -72,18 +97,28 @@ contract ChainBattles is ERC721URIStorage {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _safeMint(msg.sender, newItemId);
-        tokenIdToLevels[newItemId] = 0;
+        tokenIdToLevels[newItemId] = attributes(0, 0, 0, "");
         _setTokenURI(newItemId, getTokenURI(newItemId));
     }
 
-    function train(uint256 tokenId) public {
+    function train(
+        uint256 tokenId,
+        uint256 levels,
+        uint256 hitpoints,
+        uint256 strength,
+        string memory warriortype
+    ) public {
         require(_exists(tokenId), "Please use an existing token");
         require(
             ownerOf(tokenId) == msg.sender,
             "You must own this token to train it"
         );
-        uint256 currentLevel = tokenIdToLevels[tokenId];
-        tokenIdToLevels[tokenId] = currentLevel + 1;
+        attributes memory tempAttributes;
+        tempAttributes.levels = levels;
+        tempAttributes.hitpoints = hitpoints;
+        tempAttributes.strength = strength;
+        tempAttributes.warriortype = warriortype;
+        tokenIdToLevels[tokenId] = tempAttributes;
         _setTokenURI(tokenId, getTokenURI(tokenId));
     }
 }
