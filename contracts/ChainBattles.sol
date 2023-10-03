@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
-// deployed to polygon mumbai testnet address :
+// deployed to polygon mumbai testnet address : 0x2d87fDf73300fE5115Fb6ef9A1Fe43250D7d3Cd4
 
 contract ChainBattles is ERC721URIStorage {
     using Strings for uint256;
